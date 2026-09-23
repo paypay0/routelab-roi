@@ -89,14 +89,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     <div class="ideal"><div><div class="small">理想的备用渠道，需要什么指标？</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">在最多分流 80% 的前提下，满足目标的最低成功率。</div></div><div><div class="small">接入判断</div><b id="decisionText">填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。</b></div></div>
   </section>
 
-  <section class="section">
-    <div class="section-head"><div><div class="kicker">MODEL</div><h2>计算口径与公式</h2></div><button class="btn" id="exportBtn">导出测算 JSON ↓</button></div>
-    <details><summary>查看模型假设 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">1. 当前模型是 Direct Routing，不包含 failover retry。<br/>2. 假设渠道成功率不会因分流比例变化而改变。<br/>3. 暂不考虑 capacity / degradation。<br/>4. 所有渠道价格按请求计费，成功和失败均计费。<br/>5. 固定成本属于当前评估周期。<br/>6. ROI 中 Contribution 指每新增成功交易的贡献利润。</div></details>
-    <details><summary>Agent 使用说明 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Agent 可以设置渠道参数、执行 route simulation、求解成功率目标、比较预算内 routing，并读取“导出测算 JSON”的结构化结果。计算逻辑全部在浏览器端运行，不需要后端或 API key。</div></details>
-    <details><summary>核心公式 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Blended PSR = (A 流量 × A PSR + B 流量 × B PSR) / 总流量。<br/>Incremental Cost = 新总成本 − 原 A-only 成本。<br/>Incremental Success = 新成功笔数 − 原 A-only 成功笔数。<br/>ROI = (新增成功 × 单笔贡献利润 − 增量成本) / 增量成本。</div></details>
-    <div class="small" id="baselineText" style="margin-top:12px"></div><div class="small" id="fxMeta" style="margin-top:6px">USD 换算：正在获取最新 USD/BRL 汇率…</div>
-  </section>
-  <div class="footer"><span>RouteLab / 让路由决策有据可依</span><span>建议先小流量验证，再按结果扩大比例。</span></div>
+    <div class="footer"><span>RouteLab / 让路由决策有据可依</span><span>建议先小流量验证，再按结果扩大比例。</span></div>
 </div>
 <div class="toast" id="toast">已导出 JSON</div>
 <script>
@@ -110,7 +103,7 @@ let usdBrl=null, fxUpdatedAt=null;
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
 const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD 汇率暂不可用':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 async function loadFx(){
-  const meta=$('fxMeta');
+  const meta=null;
   try{
     const res=await fetch('https://economia.awesomeapi.com.br/last/USD-BRL',{cache:'no-store'});
     if(!res.ok) throw new Error('fx http '+res.status);
