@@ -37,7 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="panel"><h3>BRL · Monthly basis</h3><div class="field"><label>Monthly transaction volume</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">txns</span></div></div></div>
       <div class="panel"><h3>Primary channel A <span class="small">currently 100% routed</span></h3><div class="field"><label>Cost per request</label><div class="input-wrap"><input id="costA" type="number" value="0.01" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>Success rate</label><div class="input-wrap"><input id="psrA" type="number" value="50" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
       <div class="panel"><h3>Backup channel B <span class="small">candidate</span></h3><div class="field"><label>Cost per request</label><div class="input-wrap"><input id="costB" type="number" value="0.03" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>Success rate</label><div class="input-wrap"><input id="psrB" type="number" value="55" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
-      <div class="panel"><h3>Contribution & integration cost <span class="small">for ROI</span></h3><div class="field"><label>Net contribution per incremental success</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">Contribution profit after other variable costs, before routing fees. This is not transaction value.</div></div><div class="field"><label>Monthly fixed integration cost</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
+      <div class="panel"><h3>Contribution & integration cost <span class="small">for ROI</span></h3><div class="field"><label>Net contribution per incremental success</label><div class="input-wrap"><input id="contribution" type="number" placeholder="optional" step="0.01"/><span class="suffix">R$</span></div><div class="small">Contribution profit after other variable costs, before routing fees. This is not transaction value.</div></div><div class="field"><label>Monthly fixed integration cost</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
     </div>
     <div class="small" style="margin-top:13px">Pricing is request-based for both successful and failed attempts. This model uses direct routing and excludes failover retry.</div>
   </section>
@@ -45,13 +45,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
   <section class="section">
     <div class="section-head"><div><div class="kicker">02 · LIVE SIMULATION</div><h2>Routing cost simulation</h2></div><span class="pill">Live</span></div>
     <div class="panel">
-      <div class="slider-row"><div><b>Backup channel B 分流比例</b><div class="small">Drag to adjust backup-channel allocation</div></div><input id="allocation" type="range" min="0" max="100" value="20" step="1"/><div class="allocation"><span id="allocationText">20</span>%</div></div>
+      <div class="slider-row"><div><b>Backup channel B Allocation</b><div class="small">Drag to adjust backup-channel allocation</div></div><input id="allocation" type="range" min="0" max="100" value="20" step="1"/><div class="allocation"><span id="allocationText">20</span>%</div></div>
       <div class="quick"><button data-a="10">10%</button><button data-a="20">20%</button><button data-a="30">30%</button><button data-a="50">50%</button><button data-a="100">100%</button></div>
       <div class="splitbar"><span id="splitbar" style="width:20%"></span></div><div class="small"><span id="aShare">Primary channel A 80%</span> · <span id="bShare">Backup channel B 20%</span></div>
     </div>
     <div class="metrics">
       <div class="metric"><div class="label">Monthly total cost</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">vs baseline +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div><div class="small" id="annualCost">—</div></div>
-      <div class="metric"><div class="label">综合Success rate</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">vs baseline +1 pp</div></div>
+      <div class="metric"><div class="label">Blended success rate</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">vs baseline +1 pp</div></div>
       <div class="metric"><div class="label">Incremental successes</div><div class="value" id="incSuccess">+1,000 txns</div><div class="sub" id="successTotal">Expected successful 51,000 txns</div></div>
       <div class="metric"><div class="label">Incremental ROI</div><div class="value" id="roi">Enter contribution</div><div class="sub" id="roiSub">Enter contribution per incremental success</div></div>
     </div>
@@ -61,17 +61,17 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="metric"><div class="label">Volume split</div><div class="value" id="volumeSplit">80k / 20k</div><div class="sub">A / B</div></div>
       <div class="metric"><div class="label">Cost per incremental success</div><div class="value" id="cpi">R$ 0.40</div><div class="sub">Also the minimum contribution required to break even</div></div>
     </div>
-    <div class="chartbox"><div style="display:flex;justify-content:space-between;gap:10px"><b>What happens as allocation increases?</b><div class="chartlegend"><span><i class="dot"></i>Success rate</span><span><i class="dot gray"></i>Total cost</span></div></div><svg id="chart" viewBox="0 0 900 230" preserveAspectRatio="none"></svg><div class="small">横轴：Backup channel B 分流比例 · 总成本包含本周期固定成本</div></div>
+    <div class="chartbox"><div style="display:flex;justify-content:space-between;gap:10px"><b>What happens as allocation increases?</b><div class="chartlegend"><span><i class="dot"></i>Success rate</span><span><i class="dot gray"></i>Total cost</span></div></div><svg id="chart" viewBox="0 0 900 230" preserveAspectRatio="none"></svg><div class="small">：Backup channel B Allocation · CostCost</div></div>
   </section>
 
   <section class="section">
-    <div class="section-head"><div><div class="kicker">03 · TARGETS</div><h2>反推Success rate目标</h2></div></div>
+    <div class="section-head"><div><div class="kicker">03 · TARGETS</div><h2>Backsolve success-rate target</h2></div></div>
     <div class="grid3">
       <div class="field"><label>Desired uplift — multiple targets separated by commas</label><div class="input-wrap"><input id="targets" value="3, 4, 5"/></div></div>
       <div class="field"><label>Uplift basis</label><div class="input-wrap"><select id="targetMode"><option value="pp">Percentage points (pp)</option><option value="rel">Relative uplift (%)</option></select></div></div>
       <div class="panel"><div class="small">Example: +3 pp means</div><b id="targetExample" style="font-size:24px">50% → 53%</b></div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>Success rate目标</th><th>Required B allocation</th><th>Incremental success</th><th>Monthly incremental cost</th><th>Constraint check</th><th>Cost per added success</th></tr></thead><tbody id="targetRows"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Success rateTarget</th><th>Required B allocation</th><th>Incremental success</th><th>Monthly incremental cost</th><th>Constraint check</th><th>Cost per added success</th></tr></thead><tbody id="targetRows"></tbody></table></div>
   </section>
 
   <section class="section">
@@ -84,9 +84,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     </div>
     <div class="solver-result">
       <div class="recommend"><div class="small">Recommended routing</div><div class="big" id="solverAlloc">60% to B</div><div id="solverSplit">Primary channel A 40% · Backup channel B 60%</div><div class="small" id="solverStatus" style="margin:12px 0">Target 53%; expected 53%。</div><button class="btn primary" id="applySolver">Apply to simulation ↑</button></div>
-      <div class="result-list"><div><span class="small">增量Total cost</span><b id="solverCost">R$ 1,200</b><span class="small" id="solverCostUsd">≈ US$ 0.00</span></div><div><span class="small">Incremental successes</span><b id="solverSuccess">+3,000 txns</b></div><div><span class="small">Cost per added success成本</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">Net benefit</span><b id="solverNet">Enter contribution</b></div></div>
+      <div class="result-list"><div><span class="small">Incremental total cost</span><b id="solverCost">R$ 1,200</b><span class="small" id="solverCostUsd">≈ US$ 0.00</span></div><div><span class="small">Incremental successes</span><b id="solverSuccess">+3,000 txns</b></div><div><span class="small">Cost per added successCost</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">Net benefit</span><b id="solverNet">Enter contribution</b></div></div>
     </div>
-    <div class="ideal"><div><div class="small">How good must the backup channel be?</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">With a maximum B allocation of 80% 的前提下，满足目标的最低Success rate。</div></div><div><div class="small">Integration view</div><b id="decisionText">填写每txnsNet benefit后，进一步判断经济回报；当前门槛只保证Success rate目标。</b></div></div>
+    <div class="ideal"><div><div class="small">How good must the backup channel be?</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">With a maximum B allocation of 80% ，TargetSuccess rate。</div></div><div><div class="small">Integration view</div><b id="decisionText">txnsNet benefit，；Success rateTarget。</b></div></div>
   </section>
 
     <div class="footer"><span>RouteLab / Make routing decisions measurable</span><span>Start with a small traffic test, then scale allocation based on observed results.</span></div>
@@ -145,7 +145,7 @@ function renderTargets(i){
    let status='', cls='';
    if(!Number.isFinite(x)||x<0){status='Current B cannot deliver this uplift';cls='bad'}
    else if(x>1){status='Would require over 100% allocation';cls='bad'}
-   else if(x>i.maxAlloc){status='超过 Max B allocation';cls='warn'}
+   else if(x>i.maxAlloc){status='Exceeds max B allocation';cls='warn'}
    const r=Number.isFinite(x)?calc(i,x):null;
    if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'Exceeds incremental budget';cls='warn'}
    rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' txns':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div><div class="small">Annualized '+money(annualize(r.incCost))+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'Within constraints')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
@@ -205,10 +205,10 @@ function render(){
  $('totalCost').textContent=money(r.total);$('annualCost').textContent='Annualized total cost '+money(annualize(r.total))+' / year';$('costDelta').textContent='vs baseline '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='vs baseline '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' txns';$('successTotal').textContent='Expected successful '+Math.round(r.success).toLocaleString()+' txns';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='Fixed cost '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  if(r.roi==null){$('roi').textContent='Enter contribution';$('roiSub').textContent='Enter contribution per incremental success'}else{$('roi').textContent=(r.roi*100).toFixed(1)+'%';$('roi').className='value '+(r.roi>=0?'good':'bad');$('roiSub').textContent='Net benefit '+money(r.net)}
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
- $('baselineText').textContent='Baseline: '+i.volume.toLocaleString()+' txns，'+pct(i.psrA)+' Success rate，渠道费 '+money(r.baselineCost)+'。Start with a small traffic test, then scale allocation based on observed results.';
+ $('baselineText').textContent='Baseline: '+i.volume.toLocaleString()+' txns，'+pct(i.psrA)+' Success rate，Routing cost '+money(r.baselineCost)+'。Start with a small traffic test, then scale allocation based on observed results.';
  drawChart(i);renderTargets(i);solve(i);
- const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='With a maximum B allocation of '+Math.round(max*100)+'% 的前提下，满足目标的最低Success rate。';
- if(i.contribution==null)$('decisionText').textContent='填写每txnsNet benefit后，进一步判断经济回报；当前门槛只保证Success rate目标。';else if(solverResult)$('decisionText').textContent=(solverResult.net>=0?'当前可行方案Net benefit为正：':'当前可行方案Net benefit为负：')+money(solverResult.net)+'. Validate with live traffic before scaling.';else $('decisionText').textContent='No feasible routing mix meets the target under current constraints.';
+ const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='With a maximum B allocation of '+Math.round(max*100)+'% ，TargetSuccess rate。';
+ if(i.contribution==null)$('decisionText').textContent='txnsNet benefit，；Success rateTarget。';else if(solverResult)$('decisionText').textContent=(solverResult.net>=0?'Current feasible solution has positive net benefit: ':'Current feasible solution has negative net benefit: ')+money(solverResult.net)+'. Validate with live traffic before scaling.';else $('decisionText').textContent='No feasible routing mix meets the target under current constraints.';
 }
 document.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
 $('applySolver').onclick=()=>{if(solverResult){$('allocation').value=Math.round(solverResult.x*100);render();window.scrollTo({top:$('allocation').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}};
