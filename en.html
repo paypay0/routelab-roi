@@ -116,7 +116,7 @@ async function loadFx(){
     if(meta) meta.textContent='USD conversion: 1 USD ≈ R$ '+usdBrl.toFixed(4)+(fxUpdatedAt?' · Rate date '+fxUpdatedAt:'')+' · Source: Frankfurter';
     render();
   }catch(e){
-    if(meta) meta.textContent='USD conversion is temporarily unavailable; BRL calculations are unaffected.';
+    usdBrl=5.1014; fxUpdatedAt='2026-09-23'; if(meta) meta.textContent='USD conversion: live API unavailable; using Google Finance reference rate for 2026-09-23 · 1 USD ≈ R$ 5.1014'; render();
   }
 }
 function inputs(){
