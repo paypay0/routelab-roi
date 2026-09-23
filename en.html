@@ -74,20 +74,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     <div class="tablewrap"><table><thead><tr><th>Success rateTarget</th><th>Required B allocation</th><th>Incremental success</th><th>Monthly incremental cost</th><th>Constraint check</th><th>Cost per added success</th></tr></thead><tbody id="targetRows"></tbody></table></div>
   </section>
 
-  <section class="section">
-    <div class="section-head"><div><div class="kicker">04 · SOLVER</div><h2>Find your best routing mix</h2><div class="small">Solve under constraints</div></div></div>
-    <div class="grid">
-      <div class="field"><label>Target uplift</label><div class="input-wrap"><input id="solverLift" type="number" value="3" step=".1"/><span class="suffix">pp</span></div></div>
-      <div class="field"><label>Incremental cost budget</label><div class="input-wrap"><input id="budget" type="number" value="1500"/><span class="suffix">R$</span></div></div>
-      <div class="field"><label>Max B allocation</label><div class="input-wrap"><input id="maxAlloc" type="number" value="80" max="100" min="0"/><span class="suffix">%</span></div></div>
-      <div class="field"><label>Optimization objective</label><div class="input-wrap"><select id="objective"><option value="min">Meet target at lowest cost</option></select></div></div>
-    </div>
-    <div class="solver-result">
-      <div class="recommend"><div class="small">Recommended routing</div><div class="big" id="solverAlloc">60% to B</div><div id="solverSplit">Primary channel A 40% · Backup channel B 60%</div><div class="small" id="solverStatus" style="margin:12px 0">Target 53%; expected 53%。</div><button class="btn primary" id="applySolver">Apply to simulation ↑</button></div>
-      <div class="result-list"><div><span class="small">Incremental total cost</span><b id="solverCost">R$ 1,200</b><span class="small" id="solverCostUsd">≈ US$ 0.00</span></div><div><span class="small">Incremental successes</span><b id="solverSuccess">+3,000 txns</b></div><div><span class="small">Cost per added successCost</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">Cost increase</span><b id="solverNet">—</b></div></div>
-    </div>
-    <div class="ideal"><div><div class="small">How good must the backup channel be?</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">With a maximum B allocation of 80% ，TargetSuccess rate。</div></div><div><div class="small">Integration view</div><b id="decisionText">Assess feasibility using PSR uplift, incremental cost, and routing constraints.</b></div></div>
-  </section>
+  
 
     <div class="footer"><span>RouteLab / Make routing decisions measurable</span><span>Start with a small traffic test, then scale allocation based on observed results.</span></div>
 </div>
@@ -120,7 +107,7 @@ async function loadFx(){
   render();
 }
 function inputs(){
- return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),allocation:num('allocation')/100,budget:num('budget'),maxAlloc:num('maxAlloc')/100,solverLift:num('solverLift')/100,objective:$('objective').value};
+ return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),allocation:num('allocation')/100};
 }
 function calc(i,x=i.allocation){
  const vA=i.volume*(1-x),vB=i.volume*x,baselineSuccess=i.volume*i.psrA,success=vA*i.psrA+vB*i.psrB,baselineCost=i.volume*i.costA,routing=vA*i.costA+vB*i.costB,total=routing+i.fixed,incCost=total-baselineCost,incSuccess=success-baselineSuccess,blended=i.volume?success/i.volume:0,cpi=incSuccess>0?incCost/incSuccess:null,net=null,roi=cpi;
@@ -145,73 +132,20 @@ function renderTargets(i){
    let status='', cls='';
    if(!Number.isFinite(x)||x<0){status='Current B cannot deliver this uplift';cls='bad'}
    else if(x>1){status='Would require over 100% allocation';cls='bad'}
-   else if(x>i.maxAlloc){status='Exceeds max B allocation';cls='warn'}
-   const r=Number.isFinite(x)?calc(i,x):null;
-   if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'Exceeds incremental budget';cls='warn'}
-   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' txns':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div><div class="small">Annualized '+money(annualize(r.incCost))+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'Within constraints')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
+      const r=Number.isFinite(x)?calc(i,x):null;
+      rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' txns':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div><div class="small">Annualized '+money(annualize(r.incCost))+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'Within constraints')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
  });
  $('targetRows').innerHTML=rows.join('');
-}
-let solverResult=null;
-function solve(i){
- const target=i.psrA+i.solverLift;
- const delta=i.psrB-i.psrA;
- const minRequired=delta>0?Math.max(0,(target-i.psrA)/delta):Infinity;
- const maxAllowed=Math.max(0,Math.min(1,i.maxAlloc));
- let candidate=null;
-
- // Lowest-cost solution can be solved directly because blended PSR and routing cost
- // are linear in allocation in this Direct Routing model.
- if(true){
-   if(Number.isFinite(minRequired) && minRequired<=maxAllowed+1e-10){
-     const r=calc(i,Math.min(maxAllowed,minRequired));
-     if(r.incCost<=i.budget+1e-9) candidate=r;
-   }
- } else {
-   // For highest net benefit, evaluate the target-feasible interval.
-   if(Number.isFinite(minRequired) && minRequired<=maxAllowed+1e-10){
-     const candidates=[calc(i,minRequired),calc(i,maxAllowed)];
-     candidate=candidates
-       .filter(r=>r.blended+1e-10>=target && r.incCost<=i.budget+1e-9)
-       .sort((a,b)=>(b.net??-Infinity)-(a.net??-Infinity))[0]||null;
-   }
- }
-
- if(!candidate){
-   solverResult=null;
-   $('solverAlloc').textContent='No feasible solution';
-   $('solverSplit').textContent='Adjust the PSR target, budget, or allocation cap';
-   $('solverStatus').textContent='No routing mix satisfies all current constraints.';
-   ['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');
-   $('solverCostUsd').textContent='—';
-   $('solverNet').textContent='—';
-   return;
- }
-
- solverResult=candidate;
- const bx=Math.round(solverResult.x*1000)/10;
- const ax=Math.round((1-solverResult.x)*1000)/10;
- $('solverAlloc').textContent=bx+'% to B';
- $('solverSplit').textContent='Primary A '+ax+'% · Backup B '+bx+'%';
- $('solverStatus').textContent='Target '+pct(target)+'; expected '+pct(solverResult.blended)+'。';
- $('solverCost').textContent=money(solverResult.incCost);
- $('solverCostUsd').textContent=usdText(solverResult.incCost);
- $('solverSuccess').textContent=signed(solverResult.incSuccess)+' txns';
- $('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);
- $('solverNet').textContent=solverResult.baselineCost?((solverResult.incCost/solverResult.baselineCost)*100).toFixed(1)+'%':'—';
 }
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='Primary channel A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='Backup channel B '+Math.round(i.allocation*100)+'%';
  $('totalCost').textContent=money(r.total);$('annualCost').textContent='Annualized total cost '+money(annualize(r.total))+' / year · '+usdText(annualize(r.total));$('costDelta').textContent='vs baseline '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='vs baseline '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' txns';$('successTotal').textContent='Expected successful '+Math.round(r.success).toLocaleString()+' txns';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='Fixed cost '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  $('roi').textContent=r.cpi==null?'—':money(r.cpi);$('roi').className='value';$('roiSub').textContent='Incremental cost per additional successful transaction'
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
- drawChart(i);renderTargets(i);solve(i);
- const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='With a maximum B allocation of '+Math.round(max*100)+'% ，TargetSuccess rate。';
- $('decisionText').textContent=solverResult?'A feasible routing mix exists under current constraints. Use cost per incremental success and annualized incremental cost to assess whether integration is worthwhile.':'No feasible routing mix meets the target under current constraints.';
-}
+ drawChart(i);renderTargets(i);
+ }
 document.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
-$('applySolver').onclick=()=>{if(solverResult){$('allocation').value=Math.round(solverResult.x*100);render();window.scrollTo({top:$('allocation').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}};
-$('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5',solverLift:3,budget:1500,maxAlloc:80}).forEach(([k,v])=>$(k).value=v);$('targetMode').value='pp';$('objective').value='min';render()};
+$('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5'}).forEach(([k,v])=>$(k).value=v);$('targetMode').value='pp';render()};
 $('exportBtn').onclick=()=>{const i=inputs(),r=calc(i),payload={model:'direct-routing',currency:'BRL',inputs:i,baseline:{volume:i.volume,successRate:i.psrA,cost:r.baselineCost,successfulTransactions:r.baselineSuccess},currentSimulation:r,solver:solverResult,assumptions:['direct routing; no retry','request-based pricing','fixed PSR by allocation','fixed cost belongs to evaluation period']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='routelab-simulation.json';a.click();URL.revokeObjectURL(a.href);$('toast').style.display='block';setTimeout(()=>{$('toast').style.display='none'},1600)};
 render();
 loadFx();
