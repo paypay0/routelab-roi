@@ -37,7 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="panel"><h3>BRL · 月度口径</h3><div class="field"><label>月交易笔数 Volume</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">笔</span></div></div></div>
       <div class="panel"><h3>主渠道 A <span class="small">当前 100% 使用</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costA" type="number" value="0.01" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrA" type="number" value="50" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
       <div class="panel"><h3>备用渠道 B <span class="small">待接入</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costB" type="number" value="0.03" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrB" type="number" value="55" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
-      <div class="panel"><h3>接入成本 <span class="small">用于 ROI</span></h3><div class="field"><label>月度接入固定成本</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
+      <div class="panel"><h3>接入成本 <span class="small">用于 ROI</span></h3><div class="field"><label>月度接入固定成本</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>每笔利润</label><div class="input-wrap"><input id="profitPerSuccess" type="number" value="0" step="0.01" min="0"/><span class="suffix">R$</span></div><div class="small">用于判断新增成功交易带来的利润是否可以覆盖增量渠道成本。</div></div></div>
     </div>
     <div class="small" style="margin-top:13px">按请求收费，成功与失败均计费。备用渠道参与直接分流，不包含失败后重试。</div>
   </section>
@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="metric"><div class="label">月度总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div><div class="small" id="annualCost">—</div></div>
       <div class="metric"><div class="label">综合成功率</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">较现状 +1 pp</div></div>
       <div class="metric"><div class="label">新增成功笔数</div><div class="value" id="incSuccess">+1,000 笔</div><div class="sub" id="successTotal">预计成功 51,000 笔</div></div>
-      <div class="metric"><div class="label">成本效率</div><div class="value" id="roi">R$ 0.40</div><div class="sub" id="roiSub">每新增 1 笔成功交易的增量成本</div></div>
+      <div class="metric"><div class="label">成本效率</div><div class="value" id="roi">R$ 0.40</div><div class="sub" id="roiSub">每新增 1 笔成功交易的增量成本</div></div><div class="metric"><div class="label">新增利润</div><div class="value" id="incrementalProfit">R$ 0</div><div class="sub" id="annualProfit">年化 R$ 0</div></div><div class="metric"><div class="label">成本覆盖</div><div class="value" id="coverageStatus">待填写每笔利润</div><div class="sub" id="coverageDetail">—</div></div>
     </div>
     <div class="metrics">
       <div class="metric"><div class="label">平均请求价格</div><div class="value" id="avgCost">R$ 0.014</div><div class="sub">/ 笔</div></div>
@@ -107,11 +107,11 @@ async function loadFx(){
   render();
 }
 function inputs(){
- return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),allocation:num('allocation')/100};
+ return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),profitPerSuccess:num('profitPerSuccess'),allocation:num('allocation')/100};
 }
 function calc(i,x=i.allocation){
- const vA=i.volume*(1-x),vB=i.volume*x,baselineSuccess=i.volume*i.psrA,success=vA*i.psrA+vB*i.psrB,baselineCost=i.volume*i.costA,routing=vA*i.costA+vB*i.costB,total=routing+i.fixed,incCost=total-baselineCost,incSuccess=success-baselineSuccess,blended=i.volume?success/i.volume:0,cpi=incSuccess>0?incCost/incSuccess:null,net=null,roi=cpi;
- return {x,vA,vB,baselineSuccess,success,baselineCost,routing,total,incCost,incSuccess,blended,lift:blended-i.psrA,cpi,net,roi,avg:i.volume?total/i.volume:0};
+ const vA=i.volume*(1-x),vB=i.volume*x,baselineSuccess=i.volume*i.psrA,success=vA*i.psrA+vB*i.psrB,baselineCost=i.volume*i.costA,routing=vA*i.costA+vB*i.costB,total=routing+i.fixed,incCost=total-baselineCost,incSuccess=success-baselineSuccess,blended=i.volume?success/i.volume:0,cpi=incSuccess>0?incCost/incSuccess:null,incrementalProfit=incSuccess*i.profitPerSuccess,profitAfterCost=incSuccess*i.profitPerSuccess-incCost,net=null,roi=cpi;
+ return {x,vA,vB,baselineSuccess,success,baselineCost,routing,total,incCost,incSuccess,incrementalProfit,profitAfterCost,blended,lift:blended-i.psrA,cpi,net,roi,avg:i.volume?total/i.volume:0};
 }
 function drawChart(i){
  const svg=$('chart'); if(!svg) return; const W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
@@ -140,12 +140,12 @@ function renderTargets(i){
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='主渠道 A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='备用渠道 B '+Math.round(i.allocation*100)+'%';
  $('totalCost').textContent=money(r.total);$('annualCost').textContent='年化总成本 '+money(annualize(r.total))+' / year · '+usdText(annualize(r.total));$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
- $('roi').textContent=r.cpi==null?'—':money(r.cpi);$('roi').className='value';$('roiSub').textContent='每新增 1 笔成功交易的增量成本'
+ $('roi').textContent=r.cpi==null?'—':money(r.cpi);$('roi').className='value';$('roiSub').textContent='每新增 1 笔成功交易的增量成本';$('incrementalProfit').textContent=money(r.incrementalProfit);$('annualProfit').textContent='年化 '+money(annualize(r.incrementalProfit))+' · '+usdText(annualize(r.incrementalProfit));if(i.profitPerSuccess<=0){$('coverageStatus').textContent='待填写每笔利润';$('coverageStatus').className='value';$('coverageDetail').textContent='填写后自动判断是否覆盖增量成本';}else if(r.profitAfterCost>=0){$('coverageStatus').textContent='可以覆盖';$('coverageStatus').className='value good';$('coverageDetail').textContent='月度剩余 '+money(r.profitAfterCost)+' · 年化 '+money(annualize(r.profitAfterCost))+' · '+usdText(annualize(r.profitAfterCost));}else{$('coverageStatus').textContent='无法覆盖';$('coverageStatus').className='value bad';$('coverageDetail').textContent='月度缺口 '+money(Math.abs(r.profitAfterCost))+' · 年化 '+money(annualize(Math.abs(r.profitAfterCost)))+' · '+usdText(annualize(Math.abs(r.profitAfterCost)));}
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
  drawChart(i);renderTargets(i);
  }
 document.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
-$('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5'}).forEach(([k,v])=>$(k).value=v);$('targetMode').value='pp';render()};
+$('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,profitPerSuccess:0,allocation:20,targets:'3, 4, 5'}).forEach(([k,v])=>$(k).value=v);$('targetMode').value='pp';render()};
 $('exportBtn').onclick=()=>{const i=inputs(),r=calc(i),payload={model:'direct-routing',currency:'BRL',inputs:i,baseline:{volume:i.volume,successRate:i.psrA,cost:r.baselineCost,successfulTransactions:r.baselineSuccess},currentSimulation:r,solver:solverResult,assumptions:['direct routing; no retry','request-based pricing','fixed PSR by allocation','fixed cost belongs to evaluation period']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='routelab-simulation.json';a.click();URL.revokeObjectURL(a.href);$('toast').style.display='block';setTimeout(()=>{$('toast').style.display='none'},1600)};
 render();
 loadFx();
