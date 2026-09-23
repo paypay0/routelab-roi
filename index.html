@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RouteLab · 备用渠道 ROI 试算</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#17191f;--muted:#727783;--line:#e7e9ef;--accent:#5a54ff;--soft:#efefff;--ok:#16794f;--warn:#a65b00;--bad:#b42318;--shadow:0 12px 35px rgba(26,31,44,.07)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+a{color:inherit}.wrap{max-width:1180px;margin:auto;padding:28px 20px 64px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:40px}
+.brand{font-weight:800}.brand span{color:var(--accent)}.pill{font-size:12px;padding:7px 10px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--muted)}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:end;margin-bottom:28px}.eyebrow{font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--accent)}h1{font-size:48px;line-height:1.08;margin:10px 0 14px;letter-spacing:-.04em}.hero p{color:var(--muted);font-size:18px;line-height:1.7;margin:0}.hero-note{background:#15161b;color:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow)}.hero-note b{font-size:30px;display:block;margin-top:8px}
+.section{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;margin-top:18px;box-shadow:var(--shadow)}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:baseline;margin-bottom:20px}.kicker{font-size:12px;font-weight:800;letter-spacing:.11em;color:var(--accent)}h2{font-size:25px;margin:3px 0}.small{font-size:12px;color:var(--muted);line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.panel{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfbfd}.panel h3{font-size:14px;margin:0 0 14px}.field{margin:12px 0}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.input-wrap{position:relative}.input-wrap input,.input-wrap select{width:100%;border:1px solid #d9dce5;border-radius:11px;padding:11px 38px 11px 12px;background:#fff;font-size:15px;outline:none}.input-wrap input:focus,.input-wrap select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(90,84,255,.09)}.suffix{position:absolute;right:12px;top:11px;color:var(--muted);font-size:13px}
+.slider-row{display:flex;gap:16px;align-items:center}.slider-row input[type=range]{flex:1;accent-color:var(--accent)}.allocation{font-size:34px;font-weight:800;min-width:84px;text-align:right}.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.quick button,.btn{border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:10px;font-weight:700;cursor:pointer}.quick button:hover,.btn:hover{border-color:#c7c8d0}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.splitbar{height:12px;border-radius:99px;background:#ebeafc;overflow:hidden;margin:14px 0 5px}.splitbar span{display:block;height:100%;background:var(--accent)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.metric{padding:17px;border-radius:16px;background:#f8f8fb;border:1px solid var(--line)}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:25px;font-weight:800;margin:6px 0 3px;letter-spacing:-.02em}.metric .sub{font-size:12px;color:var(--muted)}.good{color:var(--ok)!important}.warn{color:var(--warn)!important}.bad{color:var(--bad)!important}
+.chartbox{margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:16px}.chartbox svg{width:100%;height:230px;display:block}.chartlegend{display:flex;gap:18px;font-size:12px;color:var(--muted)}.dot{width:9px;height:9px;border-radius:99px;background:var(--accent);display:inline-block;margin-right:5px}.dot.gray{background:#838895}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:700;padding:10px;border-bottom:1px solid var(--line)}td{padding:12px 10px;border-bottom:1px solid #f0f1f4}.tablewrap{overflow:auto}.solver-result{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:16px}.recommend{background:#15161b;color:#fff;border-radius:18px;padding:20px}.recommend .big{font-size:35px;font-weight:850;margin:6px 0}.recommend .small{color:#b9bdc7}.result-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.result-list div{border:1px solid var(--line);border-radius:13px;padding:12px}.result-list b{display:block;font-size:18px;margin-top:5px}.ideal{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-top:16px;padding:18px;border-radius:16px;background:var(--soft)}.ideal strong{font-size:38px;color:var(--accent)}details{border-top:1px solid var(--line);padding:14px 0}summary{cursor:pointer;font-weight:750}.footer{display:flex;justify-content:space-between;gap:18px;align-items:center;color:var(--muted);font-size:12px;margin-top:30px}.toast{position:fixed;right:22px;bottom:22px;background:#16181d;color:#fff;padding:12px 16px;border-radius:12px;display:none;z-index:10}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.grid,.grid3,.metrics{grid-template-columns:1fr 1fr}.solver-result{grid-template-columns:1fr}h1{font-size:39px}}
+@media(max-width:560px){.wrap{padding:20px 14px 48px}.grid,.grid3,.metrics{grid-template-columns:1fr}.hero-note{display:none}h1{font-size:34px}.section{padding:18px}.top{margin-bottom:28px}.footer{flex-direction:column;align-items:flex-start}.ideal{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span>↗</span> RouteLab <span class="small">路由决策实验室</span></div>
+    <div style="display:flex;gap:8px"><span class="pill">直接分流模型</span><span class="pill">✧ AI Agent 入口</span></div>
+  </div>
+  <div class="hero">
+    <div><div class="eyebrow">BACKUP CHANNEL SIMULATOR</div><h1>让每一笔分流，<br/>都算得清。</h1><p>在成本与成功率之间，找到适合你的备用渠道方案。</p></div>
+    <div class="hero-note"><div class="small">当前示例 · RouteLab</div><b id="heroSummary">+1 pp / +R$ 400</b><div class="small">成功率提升 / 增量成本</div></div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><div><div class="kicker">01 · INPUTS</div><h2>基础参数</h2></div><button class="btn" id="resetBtn">↺ 恢复示例</button></div>
+    <div class="grid">
+      <div class="panel"><h3>BRL · 评估周期</h3><div class="field"><label>交易笔数 Volume / 同一评估周期</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">笔</span></div></div></div>
+      <div class="panel"><h3>主渠道 A <span class="small">当前 100% 使用</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costA" type="number" value="0.01" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrA" type="number" value="50" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
+      <div class="panel"><h3>备用渠道 B <span class="small">待接入</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costB" type="number" value="0.03" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrB" type="number" value="55" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
+      <div class="panel"><h3>收益与接入成本 <span class="small">用于 ROI</span></h3><div class="field"><label>每新增成功一笔的净收益</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">扣除其他变动成本、尚未扣渠道费的贡献利润。不是交易金额。</div></div><div class="field"><label>本周期接入固定成本</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
+    </div>
+    <div class="small" style="margin-top:13px">按请求收费，成功与失败均计费。备用渠道参与直接分流，不包含失败后重试。</div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="kicker">02 · LIVE SIMULATION</div><h2>分流成本试算</h2></div><span class="pill">实时计算</span></div>
+    <div class="panel">
+      <div class="slider-row"><div><b>备用渠道 B 分流比例</b><div class="small">拖动调整备用渠道比例</div></div><input id="allocation" type="range" min="0" max="100" value="20" step="1"/><div class="allocation"><span id="allocationText">20</span>%</div></div>
+      <div class="quick"><button data-a="10">10%</button><button data-a="20">20%</button><button data-a="30">30%</button><button data-a="50">50%</button><button data-a="100">100%</button></div>
+      <div class="splitbar"><span id="splitbar" style="width:20%"></span></div><div class="small"><span id="aShare">主渠道 A 80%</span> · <span id="bShare">备用渠道 B 20%</span></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="label">本周期总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div></div>
+      <div class="metric"><div class="label">综合成功率</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">较现状 +1 pp</div></div>
+      <div class="metric"><div class="label">新增成功笔数</div><div class="value" id="incSuccess">+1,000 笔</div><div class="sub" id="successTotal">预计成功 51,000 笔</div></div>
+      <div class="metric"><div class="label">增量 ROI</div><div class="value" id="roi">待填写收益</div><div class="sub" id="roiSub">填写每笔净收益后计算</div></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="label">平均请求价格</div><div class="value" id="avgCost">R$ 0.014</div><div class="sub">/ 笔</div></div>
+      <div class="metric"><div class="label">渠道费 + 固定成本</div><div class="value" id="fees">R$ 1,400</div><div class="sub" id="fixedText">固定成本 R$ 0</div></div>
+      <div class="metric"><div class="label">请求量拆分</div><div class="value" id="volumeSplit">80k / 20k</div><div class="sub">A / B</div></div>
+      <div class="metric"><div class="label">每新增成功一笔成本</div><div class="value" id="cpi">R$ 0.40</div><div class="sub">也是回本所需最低贡献利润</div></div>
+    </div>
+    <div class="chartbox"><div style="display:flex;justify-content:space-between;gap:10px"><b>分流越多，会发生什么？</b><div class="chartlegend"><span><i class="dot"></i>成功率</span><span><i class="dot gray"></i>总成本</span></div></div><svg id="chart" viewBox="0 0 900 230" preserveAspectRatio="none"></svg><div class="small">横轴：备用渠道 B 分流比例 · 总成本包含本周期固定成本</div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="kicker">03 · TARGETS</div><h2>反推成功率目标</h2></div></div>
+    <div class="grid3">
+      <div class="field"><label>想提高多少？支持多个目标，用逗号分隔</label><div class="input-wrap"><input id="targets" value="3, 4, 5"/></div></div>
+      <div class="field"><label>提升口径</label><div class="input-wrap"><select id="targetMode"><option value="pp">百分点（pp）</option><option value="rel">相对增幅（%）</option></select></div></div>
+      <div class="panel"><div class="small">例：+3 pp 表示</div><b id="targetExample" style="font-size:24px">50% → 53%</b></div>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>成功率目标</th><th>B 所需分流</th><th>新增成功</th><th>增量总成本</th><th>约束判断</th><th>每多成功一笔</th></tr></thead><tbody id="targetRows"></tbody></table></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="kicker">04 · SOLVER</div><h2>找到你的最佳方案</h2><div class="small">按约束求解</div></div></div>
+    <div class="grid">
+      <div class="field"><label>期望提升 pp</label><div class="input-wrap"><input id="solverLift" type="number" value="3" step=".1"/><span class="suffix">pp</span></div></div>
+      <div class="field"><label>增量成本预算</label><div class="input-wrap"><input id="budget" type="number" value="1500"/><span class="suffix">R$</span></div></div>
+      <div class="field"><label>B 分流上限</label><div class="input-wrap"><input id="maxAlloc" type="number" value="80" max="100" min="0"/><span class="suffix">%</span></div></div>
+      <div class="field"><label>优化目标</label><div class="input-wrap"><select id="objective"><option value="min">达标且成本最低</option><option value="max">达标且净收益最高</option></select></div></div>
+    </div>
+    <div class="solver-result">
+      <div class="recommend"><div class="small">推荐方案</div><div class="big" id="solverAlloc">60% 分配给 B</div><div id="solverSplit">主渠道 A 40% · 备用渠道 B 60%</div><div class="small" id="solverStatus" style="margin:12px 0">目标 53%，预计达到 53%。</div><button class="btn primary" id="applySolver">应用到上方试算 ↑</button></div>
+      <div class="result-list"><div><span class="small">增量总成本</span><b id="solverCost">R$ 1,200</b></div><div><span class="small">新增成功笔数</span><b id="solverSuccess">+3,000 笔</b></div><div><span class="small">每多成功一笔成本</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">净收益</span><b id="solverNet">待填写收益</b></div></div>
+    </div>
+    <div class="ideal"><div><div class="small">理想的备用渠道，需要什么指标？</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">在最多分流 80% 的前提下，满足目标的最低成功率。</div></div><div><div class="small">接入判断</div><b id="decisionText">填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。</b></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="kicker">MODEL</div><h2>计算口径与公式</h2></div><button class="btn" id="exportBtn">导出测算 JSON ↓</button></div>
+    <details><summary>查看模型假设 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">1. 当前模型是 Direct Routing，不包含 failover retry。<br/>2. 假设渠道成功率不会因分流比例变化而改变。<br/>3. 暂不考虑 capacity / degradation。<br/>4. 所有渠道价格按请求计费，成功和失败均计费。<br/>5. 固定成本属于当前评估周期。<br/>6. ROI 中 Contribution 指每新增成功交易的贡献利润。</div></details>
+    <details><summary>Agent 使用说明 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Agent 可以设置渠道参数、执行 route simulation、求解成功率目标、比较预算内 routing，并读取“导出测算 JSON”的结构化结果。计算逻辑全部在浏览器端运行，不需要后端或 API key。</div></details>
+    <details><summary>核心公式 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Blended PSR = (A 流量 × A PSR + B 流量 × B PSR) / 总流量。<br/>Incremental Cost = 新总成本 − 原 A-only 成本。<br/>Incremental Success = 新成功笔数 − 原 A-only 成功笔数。<br/>ROI = (新增成功 × 单笔贡献利润 − 增量成本) / 增量成本。</div></details>
+    <div class="small" id="baselineText" style="margin-top:12px"></div>
+  </section>
+  <div class="footer"><span>RouteLab / 让路由决策有据可依</span><span>建议先小流量验证，再按结果扩大比例。</span></div>
+</div>
+<div class="toast" id="toast">已导出 JSON</div>
+<script>
+const $=id=>document.getElementById(id);
+const num=id=>Number($(id).value)||0;
+const money=n=>'R$ '+Number(n).toLocaleString('en-US',{minimumFractionDigits:Math.abs(n)<10?2:0,maximumFractionDigits:3});
+const pct=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+'%';
+const pp=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+' pp';
+const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+function inputs(){
+ return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),contribution:$('contribution').value===''?null:num('contribution'),allocation:num('allocation')/100,budget:num('budget'),maxAlloc:num('maxAlloc')/100,solverLift:num('solverLift')/100,objective:$('objective').value};
+}
+function calc(i,x=i.allocation){
+ const vA=i.volume*(1-x),vB=i.volume*x,baselineSuccess=i.volume*i.psrA,success=vA*i.psrA+vB*i.psrB,baselineCost=i.volume*i.costA,routing=vA*i.costA+vB*i.costB,total=routing+i.fixed,incCost=total-baselineCost,incSuccess=success-baselineSuccess,blended=i.volume?success/i.volume:0,cpi=incSuccess>0?incCost/incSuccess:null,net=i.contribution==null?null:incSuccess*i.contribution-incCost,roi=(net!=null&&incCost!==0)?net/incCost:null;
+ return {x,vA,vB,baselineSuccess,success,baselineCost,routing,total,incCost,incSuccess,blended,lift:blended-i.psrA,cpi,net,roi,avg:i.volume?total/i.volume:0};
+}
+function drawChart(i){
+ const svg=$('chart'),W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
+ for(let k=0;k<=20;k++){let x=k/20,r=calc(i,x);maxC=Math.max(maxC,r.total);ptsP.push([x,r.blended]);ptsC.push([x,r.total]);}
+ const minP=Math.min(...ptsP.map(p=>p[1])),maxP=Math.max(...ptsP.map(p=>p[1])); const pRange=(maxP-minP)||.01;
+ const path=(arr,yfn)=>arr.map((p,j)=>(j?'L':'M')+' '+(pad+p[0]*(W-2*pad)).toFixed(1)+' '+yfn(p).toFixed(1)).join(' ');
+ const pPath=path(ptsP,p=>H-pad-((p[1]-minP)/pRange)*(H-2*pad));
+ const cPath=path(ptsC,p=>H-pad-(p[1]/(maxC||1))*(H-2*pad));
+ let grid=''; for(let k=0;k<=5;k++){let x=pad+k*(W-2*pad)/5;grid+='<line x1="'+x+'" y1="'+pad+'" x2="'+x+'" y2="'+(H-pad)+'" stroke="#eceef3"/><text x="'+x+'" y="'+(H-7)+'" text-anchor="middle" font-size="10" fill="#8a8f99">'+(k*20)+'%</text>'}
+ svg.innerHTML=grid+'<path d="'+cPath+'" fill="none" stroke="#838895" stroke-width="3"/><path d="'+pPath+'" fill="none" stroke="#5a54ff" stroke-width="4"/>';
+}
+function targetValue(i,val){return $('targetMode').value==='pp'?i.psrA+val/100:i.psrA*(1+val/100)}
+function renderTargets(i){
+ const values=$('targets').value.split(',').map(v=>Number(v.trim())).filter(Number.isFinite), rows=[];
+ $('targetExample').textContent=Math.round(i.psrA*10000)/100+'% → '+Math.round(targetValue(i,3)*10000)/100+'%';
+ values.forEach(v=>{
+   const t=targetValue(i,v),den=i.psrB-i.psrA,x=den>0?(t-i.psrA)/den:Infinity;
+   let status='', cls='';
+   if(!Number.isFinite(x)||x<0){status='当前 B 无法带来该提升';cls='bad'}
+   else if(x>1){status='需要超过 100% 分流';cls='bad'}
+   else if(x>i.maxAlloc){status='超过 B 分流上限';cls='warn'}
+   const r=Number.isFinite(x)?calc(i,x):null;
+   if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'超过增量预算';cls='warn'}
+   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' 笔':'—')+'</td><td>'+(r?money(r.incCost):'—')+'</td><td class="'+cls+'">'+(status||'在约束内')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
+ });
+ $('targetRows').innerHTML=rows.join('');
+}
+let solverResult=null;
+function solve(i){
+ const target=i.psrA+i.solverLift,steps=Math.max(1,Math.round(i.maxAlloc*1000)); let candidates=[];
+ for(let s=0;s<=steps;s++){let x=s/1000,r=calc(i,x);if(r.blended+1e-10>=target&&r.incCost<=i.budget+1e-9)candidates.push(r)}
+ if(!candidates.length){solverResult=null;$('solverAlloc').textContent='暂无可行方案';$('solverSplit').textContent='请调整成功率目标、预算或分流上限';$('solverStatus').textContent='当前约束下无法同时达标。';['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');$('solverNet').textContent='—';return}
+ if(i.objective==='max'&&i.contribution!=null)candidates.sort((a,b)=>(b.net??-Infinity)-(a.net??-Infinity));else candidates.sort((a,b)=>a.incCost-b.incCost);
+ solverResult=candidates[0];
+ $('solverAlloc').textContent=Math.round(solverResult.x*1000)/10+'% 分配给 B';$('solverSplit').textContent='主渠道 A '+(Math.round((1-solverResult.x)*1000)/10)+'% · 备用渠道 B '+(Math.round(solverResult.x*1000)/10)+'%';$('solverStatus').textContent='目标 '+pct(target)+'，预计达到 '+pct(solverResult.blended)+'。';$('solverCost').textContent=money(solverResult.incCost);$('solverSuccess').textContent=signed(solverResult.incSuccess)+' 笔';$('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);$('solverNet').textContent=solverResult.net==null?'待填写收益':money(solverResult.net);
+}
+function render(){
+ const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='主渠道 A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='备用渠道 B '+Math.round(i.allocation*100)+'%';
+ $('totalCost').textContent=money(r.total);$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
+ if(r.roi==null){$('roi').textContent='待填写收益';$('roiSub').textContent='填写每笔净收益后计算'}else{$('roi').textContent=(r.roi*100).toFixed(1)+'%';$('roi').className='value '+(r.roi>=0?'good':'bad');$('roiSub').textContent='净收益 '+money(r.net)}
+ $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
+ $('baselineText').textContent='基线：'+i.volume.toLocaleString()+' 笔，'+pct(i.psrA)+' 成功率，渠道费 '+money(r.baselineCost)+'。建议先小流量验证，再按结果扩大比例。';
+ drawChart(i);renderTargets(i);solve(i);
+ const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='在最多分流 '+Math.round(max*100)+'% 的前提下，满足目标的最低成功率。';
+ if(i.contribution==null)$('decisionText').textContent='填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。';else if(solverResult)$('decisionText').textContent=(solverResult.net>=0?'当前可行方案净收益为正：':'当前可行方案净收益为负：')+money(solverResult.net)+'。请结合真实流量验证。';else $('decisionText').textContent='当前约束下没有满足目标的可行路由。';
+}
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',render));document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
+$('applySolver').onclick=()=>{if(solverResult){$('allocation').value=Math.round(solverResult.x*100);render();window.scrollTo({top:$('allocation').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}};
+$('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5',solverLift:3,budget:1500,maxAlloc:80}).forEach(([k,v])=>$(k).value=v);$('contribution').value='';$('targetMode').value='pp';$('objective').value='min';render()};
+$('exportBtn').onclick=()=>{const i=inputs(),r=calc(i),payload={model:'direct-routing',currency:'BRL',inputs:i,baseline:{volume:i.volume,successRate:i.psrA,cost:r.baselineCost,successfulTransactions:r.baselineSuccess},currentSimulation:r,solver:solverResult,assumptions:['direct routing; no retry','request-based pricing','fixed PSR by allocation','fixed cost belongs to evaluation period']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='routelab-simulation.json';a.click();URL.revokeObjectURL(a.href);$('toast').style.display='block';setTimeout(()=>{$('toast').style.display='none'},1600)};
+render();
+</script>
+</body>
+</html>
