@@ -59,9 +59,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="metric"><div class="label">Average request cost</div><div class="value" id="avgCost">R$ 0.014</div><div class="sub">/ txns</div></div>
       <div class="metric"><div class="label">Routing fees + fixed cost</div><div class="value" id="fees">R$ 1,400</div><div class="sub" id="fixedText">Fixed cost R$ 0</div></div>
       <div class="metric"><div class="label">Volume split</div><div class="value" id="volumeSplit">80k / 20k</div><div class="sub">A / B</div></div>
-      <div class="metric"><div class="label">Cost per incremental success</div><div class="value" id="cpi">R$ 0.40</div><div class="sub">Also the minimum contribution required to break even</div></div>
+      <div class="metric"><div class="label">Cost per incremental success</div><div class="value" id="cpi">R$ 0.40</div><div class="sub">Incremental routing cost required for each additional successful transaction</div></div>
     </div>
-    <div class="chartbox"><div style="display:flex;justify-content:space-between;gap:10px"><b>What happens as allocation increases?</b><div class="chartlegend"><span><i class="dot"></i>Success rate</span><span><i class="dot gray"></i>Total cost</span></div></div><svg id="chart" viewBox="0 0 900 230" preserveAspectRatio="none"></svg><div class="small">：Backup channel B Allocation · CostCost</div></div>
+    <div class="chartbox"><div style="display:flex;justify-content:space-between;gap:10px"><b>What happens as allocation increases?</b><div class="chartlegend"><span><i class="dot"></i>Success rate</span><span><i class="dot gray"></i>Total cost</span></div></div><svg id="chart" viewBox="0 0 900 230" preserveAspectRatio="none"></svg><div class="small">X-axis: Backup channel B allocation · Total cost includes monthly fixed cost</div></div>
   </section>
 
   <section class="section">
