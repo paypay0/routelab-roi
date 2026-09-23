@@ -102,22 +102,22 @@ const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionD
 const annualize=n=>n*12;
 let usdBrl=null, fxUpdatedAt=null;
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
-const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD 汇率暂不可用':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
+const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 async function loadFx(){
   const meta=null;
   try{
-    const res=await fetch('https://api.frankfurter.dev/v2/rate/usd/brl',{cache:'no-store'});
+    const res=await fetch('./fx.json',{cache:'no-store'});
     if(!res.ok) throw new Error('fx http '+res.status);
     const data=await res.json();
     const rate=Number(data&&data.rate);
     if(!rate) throw new Error('invalid fx');
     usdBrl=rate;
     fxUpdatedAt=data.date||null;
-    if(meta) meta.textContent='USD 换算：1 USD ≈ R$ '+usdBrl.toFixed(4)+(fxUpdatedAt?' · 汇率日期 '+fxUpdatedAt:'')+' · Source: Frankfurter';
-    render();
   }catch(e){
-    usdBrl=5.1014; fxUpdatedAt='2026-09-23'; if(meta) meta.textContent='USD 换算：实时接口不可用，已使用 Google Finance 2026-09-23 参考汇率 · 1 USD ≈ R$ 5.1014'; render();
+    usdBrl=5.1014;
+    fxUpdatedAt='2026-09-23';
   }
+  render();
 }
 function inputs(){
  return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),allocation:num('allocation')/100,budget:num('budget'),maxAlloc:num('maxAlloc')/100,solverLift:num('solverLift')/100,objective:$('objective').value};
