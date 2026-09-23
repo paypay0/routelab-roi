@@ -100,7 +100,7 @@ const pct=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+'%';
 const pp=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+' pp';
 const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
 const annualize=n=>n*12;
-let usdBrl=null, fxUpdatedAt=null;
+let usdBrl=5.1014, fxUpdatedAt='2026-09-23';
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
 const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 async function loadFx(){
