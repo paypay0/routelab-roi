@@ -28,16 +28,16 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
   </div>
   <div class="hero">
     <div><div class="eyebrow">BACKUP CHANNEL SIMULATOR</div><h1>Make every routing decision<br/>measurable.</h1><p>Find the right backup-channel mix between cost and payment success rate.</p></div>
-    <div class="hero-note"><div class="small">Current example · RouteLab</div><b id="heroSummary">+1 pp / +R$ 400</b><div class="small">PSR lift / Incremental cost</div></div>
+    <div class="hero-note"><div class="small">Current example · RouteLab</div><b id="heroSummary">+1 pp / +R$ 400</b><div class="small">PSR lift / Monthly incremental cost</div></div>
   </div>
 
   <section class="section">
     <div class="section-head"><div><div class="kicker">01 · INPUTS</div><h2>Inputs</h2></div><button class="btn" id="resetBtn">↺ Reset example</button></div>
     <div class="grid">
-      <div class="panel"><h3>BRL · Evaluation period</h3><div class="field"><label>Transaction volume / same evaluation period</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">txns</span></div></div></div>
+      <div class="panel"><h3>BRL · Monthly basis</h3><div class="field"><label>Monthly transaction volume</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">txns</span></div></div></div>
       <div class="panel"><h3>Primary channel A <span class="small">currently 100% routed</span></h3><div class="field"><label>Cost per request</label><div class="input-wrap"><input id="costA" type="number" value="0.01" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>Success rate</label><div class="input-wrap"><input id="psrA" type="number" value="50" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
       <div class="panel"><h3>Backup channel B <span class="small">candidate</span></h3><div class="field"><label>Cost per request</label><div class="input-wrap"><input id="costB" type="number" value="0.03" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>Success rate</label><div class="input-wrap"><input id="psrB" type="number" value="55" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
-      <div class="panel"><h3>Contribution & integration cost <span class="small">for ROI</span></h3><div class="field"><label>Net contribution per incremental success</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">Contribution profit after other variable costs, before routing fees. This is not transaction value.</div></div><div class="field"><label>Fixed integration cost for this period</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
+      <div class="panel"><h3>Contribution & integration cost <span class="small">for ROI</span></h3><div class="field"><label>Net contribution per incremental success</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">Contribution profit after other variable costs, before routing fees. This is not transaction value.</div></div><div class="field"><label>Monthly fixed integration cost</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
     </div>
     <div class="small" style="margin-top:13px">Pricing is request-based for both successful and failed attempts. This model uses direct routing and excludes failover retry.</div>
   </section>
@@ -50,7 +50,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="splitbar"><span id="splitbar" style="width:20%"></span></div><div class="small"><span id="aShare">Primary channel A 80%</span> · <span id="bShare">Backup channel B 20%</span></div>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="label">Total cost this period</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">vs baseline +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div></div>
+      <div class="metric"><div class="label">Monthly total cost</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">vs baseline +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div><div class="small" id="annualCost">—</div></div>
       <div class="metric"><div class="label">综合Success rate</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">vs baseline +1 pp</div></div>
       <div class="metric"><div class="label">Incremental successes</div><div class="value" id="incSuccess">+1,000 txns</div><div class="sub" id="successTotal">Expected successful 51,000 txns</div></div>
       <div class="metric"><div class="label">Incremental ROI</div><div class="value" id="roi">Enter contribution</div><div class="sub" id="roiSub">Enter contribution per incremental success</div></div>
@@ -71,7 +71,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="field"><label>Uplift basis</label><div class="input-wrap"><select id="targetMode"><option value="pp">Percentage points (pp)</option><option value="rel">Relative uplift (%)</option></select></div></div>
       <div class="panel"><div class="small">Example: +3 pp means</div><b id="targetExample" style="font-size:24px">50% → 53%</b></div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>Success rate目标</th><th>Required B allocation</th><th>Incremental success</th><th>Incremental cost</th><th>Constraint check</th><th>Cost per added success</th></tr></thead><tbody id="targetRows"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Success rate目标</th><th>Required B allocation</th><th>Incremental success</th><th>Monthly incremental cost</th><th>Constraint check</th><th>Cost per added success</th></tr></thead><tbody id="targetRows"></tbody></table></div>
   </section>
 
   <section class="section">
@@ -99,6 +99,7 @@ const money=n=>'R$ '+Number(n).toLocaleString('en-US',{minimumFractionDigits:Mat
 const pct=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+'%';
 const pp=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+' pp';
 const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const annualize=n=>n*12;
 let usdBrl=null, fxUpdatedAt=null;
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
 const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD rate unavailable':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
@@ -147,7 +148,7 @@ function renderTargets(i){
    else if(x>i.maxAlloc){status='超过 Max B allocation';cls='warn'}
    const r=Number.isFinite(x)?calc(i,x):null;
    if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'Exceeds incremental budget';cls='warn'}
-   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' txns':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'Within constraints')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
+   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' txns':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div><div class="small">Annualized '+money(annualize(r.incCost))+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'Within constraints')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
  });
  $('targetRows').innerHTML=rows.join('');
 }
@@ -201,7 +202,7 @@ function solve(i){
 }
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='Primary channel A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='Backup channel B '+Math.round(i.allocation*100)+'%';
- $('totalCost').textContent=money(r.total);$('costDelta').textContent='vs baseline '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='vs baseline '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' txns';$('successTotal').textContent='Expected successful '+Math.round(r.success).toLocaleString()+' txns';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='Fixed cost '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
+ $('totalCost').textContent=money(r.total);$('annualCost').textContent='Annualized total cost '+money(annualize(r.total))+' / year';$('costDelta').textContent='vs baseline '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='vs baseline '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' txns';$('successTotal').textContent='Expected successful '+Math.round(r.success).toLocaleString()+' txns';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='Fixed cost '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  if(r.roi==null){$('roi').textContent='Enter contribution';$('roiSub').textContent='Enter contribution per incremental success'}else{$('roi').textContent=(r.roi*100).toFixed(1)+'%';$('roi').className='value '+(r.roi>=0?'good':'bad');$('roiSub').textContent='Net benefit '+money(r.net)}
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
  $('baselineText').textContent='Baseline: '+i.volume.toLocaleString()+' txns，'+pct(i.psrA)+' Success rate，渠道费 '+money(r.baselineCost)+'。Start with a small traffic test, then scale allocation based on observed results.';
