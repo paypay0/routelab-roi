@@ -127,7 +127,7 @@ function calc(i,x=i.allocation){
  return {x,vA,vB,baselineSuccess,success,baselineCost,routing,total,incCost,incSuccess,blended,lift:blended-i.psrA,cpi,net,roi,avg:i.volume?total/i.volume:0};
 }
 function drawChart(i){
- const svg=$('chart'),W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
+ const svg=$('chart'); if(!svg) return; const W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
  for(let k=0;k<=20;k++){let x=k/20,r=calc(i,x);maxC=Math.max(maxC,r.total);ptsP.push([x,r.blended]);ptsC.push([x,r.total]);}
  const minP=Math.min(...ptsP.map(p=>p[1])),maxP=Math.max(...ptsP.map(p=>p[1])); const pRange=(maxP-minP)||.01;
  const path=(arr,yfn)=>arr.map((p,j)=>(j?'L':'M')+' '+(pad+p[0]*(W-2*pad)).toFixed(1)+' '+yfn(p).toFixed(1)).join(' ');
@@ -205,7 +205,6 @@ function render(){
  $('totalCost').textContent=money(r.total);$('annualCost').textContent='年化总成本 '+money(annualize(r.total))+' / year · '+usdText(annualize(r.total));$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  $('roi').textContent=r.cpi==null?'—':money(r.cpi);$('roi').className='value';$('roiSub').textContent='每新增 1 笔成功交易的增量成本'
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
- $('baselineText').textContent='月度基线：'+i.volume.toLocaleString()+' 笔，'+pct(i.psrA)+' 成功率，渠道费 '+money(r.baselineCost)+'。建议先小流量验证，再按结果扩大比例。';
  drawChart(i);renderTargets(i);solve(i);
  const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='在最多分流 '+Math.round(max*100)+'% 的前提下，满足目标的最低成功率。';
  $('decisionText').textContent=solverResult?'当前约束下存在可行方案；请结合每新增成功一笔成本和年化增量成本判断是否值得接入。':'当前约束下没有满足目标的可行路由。';
