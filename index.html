@@ -34,10 +34,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
   <section class="section">
     <div class="section-head"><div><div class="kicker">01 · INPUTS</div><h2>基础参数</h2></div><button class="btn" id="resetBtn">↺ 恢复示例</button></div>
     <div class="grid">
-      <div class="panel"><h3>BRL · 评估周期</h3><div class="field"><label>交易笔数 Volume / 同一评估周期</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">笔</span></div></div></div>
+      <div class="panel"><h3>BRL · 月度口径</h3><div class="field"><label>月交易笔数 Volume</label><div class="input-wrap"><input id="volume" type="number" value="100000" min="1"/><span class="suffix">笔</span></div></div></div>
       <div class="panel"><h3>主渠道 A <span class="small">当前 100% 使用</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costA" type="number" value="0.01" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrA" type="number" value="50" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
       <div class="panel"><h3>备用渠道 B <span class="small">待接入</span></h3><div class="field"><label>每笔请求价格</label><div class="input-wrap"><input id="costB" type="number" value="0.03" step="0.001" min="0"/><span class="suffix">R$</span></div></div><div class="field"><label>成功率</label><div class="input-wrap"><input id="psrB" type="number" value="55" step="0.1" min="0" max="100"/><span class="suffix">%</span></div></div></div>
-      <div class="panel"><h3>收益与接入成本 <span class="small">用于 ROI</span></h3><div class="field"><label>每新增成功一笔的净收益</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">扣除其他变动成本、尚未扣渠道费的贡献利润。不是交易金额。</div></div><div class="field"><label>本周期接入固定成本</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
+      <div class="panel"><h3>收益与接入成本 <span class="small">用于 ROI</span></h3><div class="field"><label>每新增成功一笔的净收益</label><div class="input-wrap"><input id="contribution" type="number" placeholder="可留空" step="0.01"/><span class="suffix">R$</span></div><div class="small">扣除其他变动成本、尚未扣渠道费的贡献利润。不是交易金额。</div></div><div class="field"><label>月度接入固定成本</label><div class="input-wrap"><input id="fixed" type="number" value="0" step="1" min="0"/><span class="suffix">R$</span></div></div></div>
     </div>
     <div class="small" style="margin-top:13px">按请求收费，成功与失败均计费。备用渠道参与直接分流，不包含失败后重试。</div>
   </section>
@@ -50,7 +50,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="splitbar"><span id="splitbar" style="width:20%"></span></div><div class="small"><span id="aShare">主渠道 A 80%</span> · <span id="bShare">备用渠道 B 20%</span></div>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="label">本周期总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div></div>
+      <div class="metric"><div class="label">月度总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div><div class="small" id="annualCost">—</div></div>
       <div class="metric"><div class="label">综合成功率</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">较现状 +1 pp</div></div>
       <div class="metric"><div class="label">新增成功笔数</div><div class="value" id="incSuccess">+1,000 笔</div><div class="sub" id="successTotal">预计成功 51,000 笔</div></div>
       <div class="metric"><div class="label">增量 ROI</div><div class="value" id="roi">待填写收益</div><div class="sub" id="roiSub">填写每笔净收益后计算</div></div>
@@ -71,7 +71,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="field"><label>提升口径</label><div class="input-wrap"><select id="targetMode"><option value="pp">百分点（pp）</option><option value="rel">相对增幅（%）</option></select></div></div>
       <div class="panel"><div class="small">例：+3 pp 表示</div><b id="targetExample" style="font-size:24px">50% → 53%</b></div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>成功率目标</th><th>B 所需分流</th><th>新增成功</th><th>增量总成本</th><th>约束判断</th><th>每多成功一笔</th></tr></thead><tbody id="targetRows"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>成功率目标</th><th>B 所需分流</th><th>新增成功</th><th>月度增量成本</th><th>约束判断</th><th>每多成功一笔</th></tr></thead><tbody id="targetRows"></tbody></table></div>
   </section>
 
   <section class="section">
@@ -99,6 +99,7 @@ const money=n=>'R$ '+Number(n).toLocaleString('en-US',{minimumFractionDigits:Mat
 const pct=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+'%';
 const pp=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+' pp';
 const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const annualize=n=>n*12;
 let usdBrl=null, fxUpdatedAt=null;
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
 const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD 汇率暂不可用':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
@@ -147,7 +148,7 @@ function renderTargets(i){
    else if(x>i.maxAlloc){status='超过 B 分流上限';cls='warn'}
    const r=Number.isFinite(x)?calc(i,x):null;
    if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'超过增量预算';cls='warn'}
-   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' 笔':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'在约束内')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
+   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' 笔':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div><div class="small">年化 '+money(annualize(r.incCost))+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'在约束内')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
  });
  $('targetRows').innerHTML=rows.join('');
 }
@@ -201,10 +202,10 @@ function solve(i){
 }
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='主渠道 A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='备用渠道 B '+Math.round(i.allocation*100)+'%';
- $('totalCost').textContent=money(r.total);$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
+ $('totalCost').textContent=money(r.total);$('annualCost').textContent='年化总成本 '+money(annualize(r.total))+' / year';$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  if(r.roi==null){$('roi').textContent='待填写收益';$('roiSub').textContent='填写每笔净收益后计算'}else{$('roi').textContent=(r.roi*100).toFixed(1)+'%';$('roi').className='value '+(r.roi>=0?'good':'bad');$('roiSub').textContent='净收益 '+money(r.net)}
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
- $('baselineText').textContent='基线：'+i.volume.toLocaleString()+' 笔，'+pct(i.psrA)+' 成功率，渠道费 '+money(r.baselineCost)+'。建议先小流量验证，再按结果扩大比例。';
+ $('baselineText').textContent='月度基线：'+i.volume.toLocaleString()+' 笔，'+pct(i.psrA)+' 成功率，渠道费 '+money(r.baselineCost)+'。建议先小流量验证，再按结果扩大比例。';
  drawChart(i);renderTargets(i);solve(i);
  const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='在最多分流 '+Math.round(max*100)+'% 的前提下，满足目标的最低成功率。';
  if(i.contribution==null)$('decisionText').textContent='填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。';else if(solverResult)$('decisionText').textContent=(solverResult.net>=0?'当前可行方案净收益为正：':'当前可行方案净收益为负：')+money(solverResult.net)+'。请结合真实流量验证。';else $('decisionText').textContent='当前约束下没有满足目标的可行路由。';
