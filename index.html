@@ -50,7 +50,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
       <div class="splitbar"><span id="splitbar" style="width:20%"></span></div><div class="small"><span id="aShare">主渠道 A 80%</span> · <span id="bShare">备用渠道 B 20%</span></div>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="label">本周期总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div></div>
+      <div class="metric"><div class="label">本周期总成本</div><div class="value" id="totalCost">R$ 1,400</div><div class="sub" id="costDelta">较现状 +400 BRL</div><div class="small" id="costDeltaUsd">≈ US$ 0.00</div></div>
       <div class="metric"><div class="label">综合成功率</div><div class="value" id="blendedPsr">51%</div><div class="sub good" id="psrDelta">较现状 +1 pp</div></div>
       <div class="metric"><div class="label">新增成功笔数</div><div class="value" id="incSuccess">+1,000 笔</div><div class="sub" id="successTotal">预计成功 51,000 笔</div></div>
       <div class="metric"><div class="label">增量 ROI</div><div class="value" id="roi">待填写收益</div><div class="sub" id="roiSub">填写每笔净收益后计算</div></div>
@@ -84,7 +84,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     </div>
     <div class="solver-result">
       <div class="recommend"><div class="small">推荐方案</div><div class="big" id="solverAlloc">60% 分配给 B</div><div id="solverSplit">主渠道 A 40% · 备用渠道 B 60%</div><div class="small" id="solverStatus" style="margin:12px 0">目标 53%，预计达到 53%。</div><button class="btn primary" id="applySolver">应用到上方试算 ↑</button></div>
-      <div class="result-list"><div><span class="small">增量总成本</span><b id="solverCost">R$ 1,200</b></div><div><span class="small">新增成功笔数</span><b id="solverSuccess">+3,000 笔</b></div><div><span class="small">每多成功一笔成本</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">净收益</span><b id="solverNet">待填写收益</b></div></div>
+      <div class="result-list"><div><span class="small">增量总成本</span><b id="solverCost">R$ 1,200</b><span class="small" id="solverCostUsd">≈ US$ 0.00</span></div><div><span class="small">新增成功笔数</span><b id="solverSuccess">+3,000 笔</b></div><div><span class="small">每多成功一笔成本</span><b id="solverCpi">R$ 0.40</b></div><div><span class="small">净收益</span><b id="solverNet">待填写收益</b></div></div>
     </div>
     <div class="ideal"><div><div class="small">理想的备用渠道，需要什么指标？</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">在最多分流 80% 的前提下，满足目标的最低成功率。</div></div><div><div class="small">接入判断</div><b id="decisionText">填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。</b></div></div>
   </section>
@@ -94,7 +94,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     <details><summary>查看模型假设 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">1. 当前模型是 Direct Routing，不包含 failover retry。<br/>2. 假设渠道成功率不会因分流比例变化而改变。<br/>3. 暂不考虑 capacity / degradation。<br/>4. 所有渠道价格按请求计费，成功和失败均计费。<br/>5. 固定成本属于当前评估周期。<br/>6. ROI 中 Contribution 指每新增成功交易的贡献利润。</div></details>
     <details><summary>Agent 使用说明 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Agent 可以设置渠道参数、执行 route simulation、求解成功率目标、比较预算内 routing，并读取“导出测算 JSON”的结构化结果。计算逻辑全部在浏览器端运行，不需要后端或 API key。</div></details>
     <details><summary>核心公式 ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Blended PSR = (A 流量 × A PSR + B 流量 × B PSR) / 总流量。<br/>Incremental Cost = 新总成本 − 原 A-only 成本。<br/>Incremental Success = 新成功笔数 − 原 A-only 成功笔数。<br/>ROI = (新增成功 × 单笔贡献利润 − 增量成本) / 增量成本。</div></details>
-    <div class="small" id="baselineText" style="margin-top:12px"></div>
+    <div class="small" id="baselineText" style="margin-top:12px"></div><div class="small" id="fxMeta" style="margin-top:6px">USD 换算：正在获取最新 USD/BRL 汇率…</div>
   </section>
   <div class="footer"><span>RouteLab / 让路由决策有据可依</span><span>建议先小流量验证，再按结果扩大比例。</span></div>
 </div>
@@ -106,6 +106,25 @@ const money=n=>'R$ '+Number(n).toLocaleString('en-US',{minimumFractionDigits:Mat
 const pct=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+'%';
 const pp=n=>(n*100).toLocaleString('en-US',{maximumFractionDigits:2})+' pp';
 const signed=n=>(n>=0?'+':'')+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+let usdBrl=null, fxUpdatedAt=null;
+const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
+const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD 汇率暂不可用':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
+async function loadFx(){
+  const meta=$('fxMeta');
+  try{
+    const res=await fetch('https://economia.awesomeapi.com.br/last/USD-BRL',{cache:'no-store'});
+    if(!res.ok) throw new Error('fx http '+res.status);
+    const data=await res.json(), q=data.USDBRL;
+    const bid=Number(q&&q.bid), ask=Number(q&&q.ask);
+    if(!bid||!ask) throw new Error('invalid fx');
+    usdBrl=(bid+ask)/2;
+    fxUpdatedAt=q.create_date||q.timestamp||null;
+    if(meta) meta.textContent='USD 换算：1 USD ≈ R$ '+usdBrl.toFixed(4)+(fxUpdatedAt?' · 汇率更新时间 '+fxUpdatedAt:'')+' · Source: AwesomeAPI';
+    render();
+  }catch(e){
+    if(meta) meta.textContent='USD 换算：实时汇率暂不可用，BRL 试算不受影响。';
+  }
+}
 function inputs(){
  return {volume:num('volume'),costA:num('costA'),psrA:num('psrA')/100,costB:num('costB'),psrB:num('psrB')/100,fixed:num('fixed'),contribution:$('contribution').value===''?null:num('contribution'),allocation:num('allocation')/100,budget:num('budget'),maxAlloc:num('maxAlloc')/100,solverLift:num('solverLift')/100,objective:$('objective').value};
 }
@@ -135,7 +154,7 @@ function renderTargets(i){
    else if(x>i.maxAlloc){status='超过 B 分流上限';cls='warn'}
    const r=Number.isFinite(x)?calc(i,x):null;
    if(r&&r.incCost>i.budget){status+=(status?' · ':'')+'超过增量预算';cls='warn'}
-   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' 笔':'—')+'</td><td>'+(r?money(r.incCost):'—')+'</td><td class="'+cls+'">'+(status||'在约束内')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
+   rows.push('<tr><td><b>'+pct(t)+'</b><div class="small">+'+v+($('targetMode').value==='pp'?' pp':'%')+'</div></td><td>'+(Number.isFinite(x)?pct(x):'—')+'</td><td>'+(r?signed(r.incSuccess)+' 笔':'—')+'</td><td>'+(r?money(r.incCost)+'<div class="small">'+usdText(r.incCost)+'</div>':'—')+'</td><td class="'+cls+'">'+(status||'在约束内')+'</td><td>'+(r&&r.cpi!=null?money(r.cpi):'—')+'</td></tr>');
  });
  $('targetRows').innerHTML=rows.join('');
 }
@@ -143,14 +162,14 @@ let solverResult=null;
 function solve(i){
  const target=i.psrA+i.solverLift,steps=Math.max(1,Math.round(i.maxAlloc*1000)); let candidates=[];
  for(let s=0;s<=steps;s++){let x=s/1000,r=calc(i,x);if(r.blended+1e-10>=target&&r.incCost<=i.budget+1e-9)candidates.push(r)}
- if(!candidates.length){solverResult=null;$('solverAlloc').textContent='暂无可行方案';$('solverSplit').textContent='请调整成功率目标、预算或分流上限';$('solverStatus').textContent='当前约束下无法同时达标。';['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');$('solverNet').textContent='—';return}
+ if(!candidates.length){solverResult=null;$('solverAlloc').textContent='暂无可行方案';$('solverSplit').textContent='请调整成功率目标、预算或分流上限';$('solverStatus').textContent='当前约束下无法同时达标。';['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');$('solverCostUsd').textContent='—';$('solverNet').textContent='—';return}
  if(i.objective==='max'&&i.contribution!=null)candidates.sort((a,b)=>(b.net??-Infinity)-(a.net??-Infinity));else candidates.sort((a,b)=>a.incCost-b.incCost);
  solverResult=candidates[0];
- $('solverAlloc').textContent=Math.round(solverResult.x*1000)/10+'% 分配给 B';$('solverSplit').textContent='主渠道 A '+(Math.round((1-solverResult.x)*1000)/10)+'% · 备用渠道 B '+(Math.round(solverResult.x*1000)/10)+'%';$('solverStatus').textContent='目标 '+pct(target)+'，预计达到 '+pct(solverResult.blended)+'。';$('solverCost').textContent=money(solverResult.incCost);$('solverSuccess').textContent=signed(solverResult.incSuccess)+' 笔';$('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);$('solverNet').textContent=solverResult.net==null?'待填写收益':money(solverResult.net);
+ $('solverAlloc').textContent=Math.round(solverResult.x*1000)/10+'% 分配给 B';$('solverSplit').textContent='主渠道 A '+(Math.round((1-solverResult.x)*1000)/10)+'% · 备用渠道 B '+(Math.round(solverResult.x*1000)/10)+'%';$('solverStatus').textContent='目标 '+pct(target)+'，预计达到 '+pct(solverResult.blended)+'。';$('solverCost').textContent=money(solverResult.incCost);$('solverCostUsd').textContent=usdText(solverResult.incCost);$('solverSuccess').textContent=signed(solverResult.incSuccess)+' 笔';$('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);$('solverNet').textContent=solverResult.net==null?'待填写收益':money(solverResult.net);
 }
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='主渠道 A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='备用渠道 B '+Math.round(i.allocation*100)+'%';
- $('totalCost').textContent=money(r.total);$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
+ $('totalCost').textContent=money(r.total);$('costDelta').textContent='较现状 '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='较现状 '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' 笔';$('successTotal').textContent='预计成功 '+Math.round(r.success).toLocaleString()+' 笔';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='固定成本 '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  if(r.roi==null){$('roi').textContent='待填写收益';$('roiSub').textContent='填写每笔净收益后计算'}else{$('roi').textContent=(r.roi*100).toFixed(1)+'%';$('roi').className='value '+(r.roi>=0?'good':'bad');$('roiSub').textContent='净收益 '+money(r.net)}
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
  $('baselineText').textContent='基线：'+i.volume.toLocaleString()+' 笔，'+pct(i.psrA)+' 成功率，渠道费 '+money(r.baselineCost)+'。建议先小流量验证，再按结果扩大比例。';
@@ -163,6 +182,7 @@ $('applySolver').onclick=()=>{if(solverResult){$('allocation').value=Math.round(
 $('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5',solverLift:3,budget:1500,maxAlloc:80}).forEach(([k,v])=>$(k).value=v);$('contribution').value='';$('targetMode').value='pp';$('objective').value='min';render()};
 $('exportBtn').onclick=()=>{const i=inputs(),r=calc(i),payload={model:'direct-routing',currency:'BRL',inputs:i,baseline:{volume:i.volume,successRate:i.psrA,cost:r.baselineCost,successfulTransactions:r.baselineSuccess},currentSimulation:r,solver:solverResult,assumptions:['direct routing; no retry','request-based pricing','fixed PSR by allocation','fixed cost belongs to evaluation period']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='routelab-simulation.json';a.click();URL.revokeObjectURL(a.href);$('toast').style.display='block';setTimeout(()=>{$('toast').style.display='none'},1600)};
 render();
+loadFx();
 </script>
 </body>
 </html>
