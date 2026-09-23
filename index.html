@@ -160,12 +160,51 @@ function renderTargets(i){
 }
 let solverResult=null;
 function solve(i){
- const target=i.psrA+i.solverLift,steps=Math.max(1,Math.round(i.maxAlloc*1000)); let candidates=[];
- for(let s=0;s<=steps;s++){let x=s/1000,r=calc(i,x);if(r.blended+1e-10>=target&&r.incCost<=i.budget+1e-9)candidates.push(r)}
- if(!candidates.length){solverResult=null;$('solverAlloc').textContent='暂无可行方案';$('solverSplit').textContent='请调整成功率目标、预算或分流上限';$('solverStatus').textContent='当前约束下无法同时达标。';['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');$('solverCostUsd').textContent='—';$('solverNet').textContent='—';return}
- if(i.objective==='max'&&i.contribution!=null)candidates.sort((a,b)=>(b.net??-Infinity)-(a.net??-Infinity));else candidates.sort((a,b)=>a.incCost-b.incCost);
- solverResult=candidates[0];
- $('solverAlloc').textContent=Math.round(solverResult.x*1000)/10+'% 分配给 B';$('solverSplit').textContent='主渠道 A '+(Math.round((1-solverResult.x)*1000)/10)+'% · 备用渠道 B '+(Math.round(solverResult.x*1000)/10)+'%';$('solverStatus').textContent='目标 '+pct(target)+'，预计达到 '+pct(solverResult.blended)+'。';$('solverCost').textContent=money(solverResult.incCost);$('solverCostUsd').textContent=usdText(solverResult.incCost);$('solverSuccess').textContent=signed(solverResult.incSuccess)+' 笔';$('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);$('solverNet').textContent=solverResult.net==null?'待填写收益':money(solverResult.net);
+ const target=i.psrA+i.solverLift;
+ const delta=i.psrB-i.psrA;
+ const minRequired=delta>0?Math.max(0,(target-i.psrA)/delta):Infinity;
+ const maxAllowed=Math.max(0,Math.min(1,i.maxAlloc));
+ let candidate=null;
+
+ // Lowest-cost solution can be solved directly because blended PSR and routing cost
+ // are linear in allocation in this Direct Routing model.
+ if(i.objective==='min' || i.contribution==null){
+   if(Number.isFinite(minRequired) && minRequired<=maxAllowed+1e-10){
+     const r=calc(i,Math.min(maxAllowed,minRequired));
+     if(r.incCost<=i.budget+1e-9) candidate=r;
+   }
+ } else {
+   // For highest net benefit, evaluate the target-feasible interval.
+   if(Number.isFinite(minRequired) && minRequired<=maxAllowed+1e-10){
+     const candidates=[calc(i,minRequired),calc(i,maxAllowed)];
+     candidate=candidates
+       .filter(r=>r.blended+1e-10>=target && r.incCost<=i.budget+1e-9)
+       .sort((a,b)=>(b.net??-Infinity)-(a.net??-Infinity))[0]||null;
+   }
+ }
+
+ if(!candidate){
+   solverResult=null;
+   $('solverAlloc').textContent='暂无可行方案';
+   $('solverSplit').textContent='请调整成功率目标、预算或分流上限';
+   $('solverStatus').textContent='当前约束下无法同时达标。';
+   ['solverCost','solverSuccess','solverCpi'].forEach(id=>$(id).textContent='—');
+   $('solverCostUsd').textContent='—';
+   $('solverNet').textContent='—';
+   return;
+ }
+
+ solverResult=candidate;
+ const bx=Math.round(solverResult.x*1000)/10;
+ const ax=Math.round((1-solverResult.x)*1000)/10;
+ $('solverAlloc').textContent=bx+'% 分配给 B';
+ $('solverSplit').textContent='主渠道 A '+ax+'% · 备用渠道 B '+bx+'%';
+ $('solverStatus').textContent='目标 '+pct(target)+'，预计达到 '+pct(solverResult.blended)+'。';
+ $('solverCost').textContent=money(solverResult.incCost);
+ $('solverCostUsd').textContent=usdText(solverResult.incCost);
+ $('solverSuccess').textContent=signed(solverResult.incSuccess)+' 笔';
+ $('solverCpi').textContent=solverResult.cpi==null?'—':money(solverResult.cpi);
+ $('solverNet').textContent=solverResult.net==null?'待填写收益':money(solverResult.net);
 }
 function render(){
  const i=inputs(),r=calc(i);$('allocationText').textContent=Math.round(i.allocation*100);$('splitbar').style.width=(i.allocation*100)+'%';$('aShare').textContent='主渠道 A '+Math.round((1-i.allocation)*100)+'%';$('bShare').textContent='备用渠道 B '+Math.round(i.allocation*100)+'%';
@@ -177,7 +216,7 @@ function render(){
  const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='在最多分流 '+Math.round(max*100)+'% 的前提下，满足目标的最低成功率。';
  if(i.contribution==null)$('decisionText').textContent='填写每笔净收益后，进一步判断经济回报；当前门槛只保证成功率目标。';else if(solverResult)$('decisionText').textContent=(solverResult.net>=0?'当前可行方案净收益为正：':'当前可行方案净收益为负：')+money(solverResult.net)+'。请结合真实流量验证。';else $('decisionText').textContent='当前约束下没有满足目标的可行路由。';
 }
-document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',render));document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
+document.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('allocation').value=b.dataset.a;render()});
 $('applySolver').onclick=()=>{if(solverResult){$('allocation').value=Math.round(solverResult.x*100);render();window.scrollTo({top:$('allocation').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}};
 $('resetBtn').onclick=()=>{Object.entries({volume:100000,costA:.01,psrA:50,costB:.03,psrB:55,fixed:0,allocation:20,targets:'3, 4, 5',solverLift:3,budget:1500,maxAlloc:80}).forEach(([k,v])=>$(k).value=v);$('contribution').value='';$('targetMode').value='pp';$('objective').value='min';render()};
 $('exportBtn').onclick=()=>{const i=inputs(),r=calc(i),payload={model:'direct-routing',currency:'BRL',inputs:i,baseline:{volume:i.volume,successRate:i.psrA,cost:r.baselineCost,successfulTransactions:r.baselineSuccess},currentSimulation:r,solver:solverResult,assumptions:['direct routing; no retry','request-based pricing','fixed PSR by allocation','fixed cost belongs to evaluation period']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='routelab-simulation.json';a.click();URL.revokeObjectURL(a.href);$('toast').style.display='block';setTimeout(()=>{$('toast').style.display='none'},1600)};
