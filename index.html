@@ -106,14 +106,14 @@ const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD 汇率暂不可�
 async function loadFx(){
   const meta=null;
   try{
-    const res=await fetch('https://economia.awesomeapi.com.br/last/USD-BRL',{cache:'no-store'});
+    const res=await fetch('https://api.frankfurter.dev/v2/rate/usd/brl',{cache:'no-store'});
     if(!res.ok) throw new Error('fx http '+res.status);
-    const data=await res.json(), q=data.USDBRL;
-    const bid=Number(q&&q.bid), ask=Number(q&&q.ask);
-    if(!bid||!ask) throw new Error('invalid fx');
-    usdBrl=(bid+ask)/2;
-    fxUpdatedAt=q.create_date||q.timestamp||null;
-    if(meta) meta.textContent='USD 换算：1 USD ≈ R$ '+usdBrl.toFixed(4)+(fxUpdatedAt?' · 汇率更新时间 '+fxUpdatedAt:'')+' · Source: AwesomeAPI';
+    const data=await res.json();
+    const rate=Number(data&&data.rate);
+    if(!rate) throw new Error('invalid fx');
+    usdBrl=rate;
+    fxUpdatedAt=data.date||null;
+    if(meta) meta.textContent='USD 换算：1 USD ≈ R$ '+usdBrl.toFixed(4)+(fxUpdatedAt?' · 汇率日期 '+fxUpdatedAt:'')+' · Source: Frankfurter';
     render();
   }catch(e){
     if(meta) meta.textContent='USD 换算：实时汇率暂不可用，BRL 试算不受影响。';
