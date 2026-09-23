@@ -127,7 +127,7 @@ function calc(i,x=i.allocation){
  return {x,vA,vB,baselineSuccess,success,baselineCost,routing,total,incCost,incSuccess,blended,lift:blended-i.psrA,cpi,net,roi,avg:i.volume?total/i.volume:0};
 }
 function drawChart(i){
- const svg=$('chart'),W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
+ const svg=$('chart'); if(!svg) return; const W=900,H=230,pad=28; let ptsP=[],ptsC=[],maxC=0;
  for(let k=0;k<=20;k++){let x=k/20,r=calc(i,x);maxC=Math.max(maxC,r.total);ptsP.push([x,r.blended]);ptsC.push([x,r.total]);}
  const minP=Math.min(...ptsP.map(p=>p[1])),maxP=Math.max(...ptsP.map(p=>p[1])); const pRange=(maxP-minP)||.01;
  const path=(arr,yfn)=>arr.map((p,j)=>(j?'L':'M')+' '+(pad+p[0]*(W-2*pad)).toFixed(1)+' '+yfn(p).toFixed(1)).join(' ');
@@ -205,7 +205,6 @@ function render(){
  $('totalCost').textContent=money(r.total);$('annualCost').textContent='Annualized total cost '+money(annualize(r.total))+' / year · '+usdText(annualize(r.total));$('costDelta').textContent='vs baseline '+signed(r.incCost)+' BRL';$('costDeltaUsd').textContent=usdText(r.incCost);$('blendedPsr').textContent=pct(r.blended);$('psrDelta').textContent='vs baseline '+(r.lift>=0?'+':'')+pp(r.lift);$('psrDelta').className='sub '+(r.lift>=0?'good':'bad');$('incSuccess').textContent=signed(r.incSuccess)+' txns';$('successTotal').textContent='Expected successful '+Math.round(r.success).toLocaleString()+' txns';$('avgCost').textContent=money(r.avg);$('fees').textContent=money(r.total);$('fixedText').textContent='Fixed cost '+money(i.fixed);$('volumeSplit').textContent=Math.round(r.vA/1000)+'k / '+Math.round(r.vB/1000)+'k';$('cpi').textContent=r.cpi==null?'—':money(r.cpi);
  $('roi').textContent=r.cpi==null?'—':money(r.cpi);$('roi').className='value';$('roiSub').textContent='Incremental cost per additional successful transaction'
  $('heroSummary').textContent=(r.lift>=0?'+':'')+pp(r.lift)+' / '+signed(r.incCost).replace('+','+R$ ').replace('-','-R$ ');
- $('baselineText').textContent='Baseline: '+i.volume.toLocaleString()+' txns，'+pct(i.psrA)+' Success rate，Routing cost '+money(r.baselineCost)+'。Start with a small traffic test, then scale allocation based on observed results.';
  drawChart(i);renderTargets(i);solve(i);
  const max=i.maxAlloc, target=i.psrA+i.solverLift; let req=max>0?(target-i.psrA*(1-max))/max:Infinity;$('idealPsr').textContent=Number.isFinite(req)?'≥ '+pct(req):'—';$('idealText').textContent='With a maximum B allocation of '+Math.round(max*100)+'% ，TargetSuccess rate。';
  $('decisionText').textContent=solverResult?'A feasible routing mix exists under current constraints. Use cost per incremental success and annualized incremental cost to assess whether integration is worthwhile.':'No feasible routing mix meets the target under current constraints.';
