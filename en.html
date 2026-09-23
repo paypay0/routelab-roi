@@ -89,14 +89,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;colo
     <div class="ideal"><div><div class="small">How good must the backup channel be?</div><strong id="idealPsr">≥ 53.8%</strong><div class="small" id="idealText">With a maximum B allocation of 80% 的前提下，满足目标的最低Success rate。</div></div><div><div class="small">Integration view</div><b id="decisionText">填写每txnsNet benefit后，进一步判断经济回报；当前门槛只保证Success rate目标。</b></div></div>
   </section>
 
-  <section class="section">
-    <div class="section-head"><div><div class="kicker">MODEL</div><h2>Model & formulas</h2></div><button class="btn" id="exportBtn">Export simulation JSON ↓</button></div>
-    <details><summary>View model assumptions ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">1. 当前模型是 Direct Routing，不包含 failover retry。<br/>2. 假设渠道Success rate不会因分流比例变化而改变。<br/>3. 暂不考虑 capacity / degradation。<br/>4. 所有渠道价格按请求计费，成功和失败均计费。<br/>5. 固定成本属于当前评估周期。<br/>6. ROI 中 Contribution 指每Incremental success交易的贡献利润。</div></details>
-    <details><summary>Agent instructions ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Agent 可以设置渠道参数、执行 route simulation、求解Success rate目标、比较预算内 routing，并读取“导出测算 JSON”的结构化结果。计算逻辑全部在浏览器端运行，不需要后端或 API key。</div></details>
-    <details><summary>Core formulas ↗</summary><div class="small" style="margin-top:12px;line-height:1.9">Blended PSR = (A 流量 × A PSR + B 流量 × B PSR) / 总流量。<br/>Incremental Cost = 新总成本 − 原 A-only 成本。<br/>Incremental Success = 新成功txns数 − 原 A-only 成功txns数。<br/>ROI = (Incremental success × 单txns贡献利润 − 增量成本) / 增量成本。</div></details>
-    <div class="small" id="baselineText" style="margin-top:12px"></div><div class="small" id="fxMeta" style="margin-top:6px">USD conversion: fetching the latest USD/BRL rate…</div>
-  </section>
-  <div class="footer"><span>RouteLab / Make routing decisions measurable</span><span>Start with a small traffic test, then scale allocation based on observed results.</span></div>
+    <div class="footer"><span>RouteLab / Make routing decisions measurable</span><span>Start with a small traffic test, then scale allocation based on observed results.</span></div>
 </div>
 <div class="toast" id="toast">JSON exported</div>
 <script>
@@ -110,7 +103,7 @@ let usdBrl=null, fxUpdatedAt=null;
 const usdFromBrl=brl=>usdBrl?brl/usdBrl:null;
 const usdText=brl=>{const v=usdFromBrl(brl);return v==null?'USD rate unavailable':'≈ US$ '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 async function loadFx(){
-  const meta=$('fxMeta');
+  const meta=null;
   try{
     const res=await fetch('https://economia.awesomeapi.com.br/last/USD-BRL',{cache:'no-store'});
     if(!res.ok) throw new Error('fx http '+res.status);
